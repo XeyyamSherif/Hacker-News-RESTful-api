@@ -1,0 +1,46 @@
+version: "3"
+
+services:
+
+  db:
+    image: postgres:13
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+  web:
+    build: .
+    command: >
+      sh -c "../wait-for-it.sh db:5432 --&&python manage.py migrate&&python
+      manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    environment:
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+
+  celery:
+    build: .
+    command: celery -A hackernews worker -l INFO
+    environment:
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0=value
+    depends_on:
+      - web
+      - redis
+  redis:
+    image: "redis"
+  celery-beat:
+    build: .
+    command: celery -A hackernews beat -l info
+    depends_on:
+      - redis
+
+# sh -c "./wait-for-it.sh db:5432 --&&python core/manage.py runserver 0.0.0.0:8000 
+
+# ./wait-for-it.sh","db:5432","--", "python", "core/manage.py runserver 0.0.0.0:8000
