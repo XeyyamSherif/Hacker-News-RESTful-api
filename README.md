@@ -1,9 +1,6 @@
 # Hacker-News-RESTful-api
 
 
-# Hacker-News-rest-api-Dokcer-compose
-
-
 ## requirements
  - Docker  should be installed on your machine
 
